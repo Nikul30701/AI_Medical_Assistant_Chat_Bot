@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import *
+from .views import DocumentListView, DocumentUploadView, DocumentDetailView
 
 urlpatterns = [
     path('', DocumentListView.as_view(), name='document-list'),

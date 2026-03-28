@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',  # Required for logout
     'corsheaders',
     'channels',
     'cloudinary',
@@ -51,6 +52,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',              # Must be before CommonMiddleware
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -128,13 +130,25 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# JWT Auth
+# JWT Auth — httpOnly cookie-based
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME':  timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME':  timedelta(minutes=15),      # Short-lived access token
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS':  True,
+    'BLACKLIST_AFTER_ROTATION': True,                      # Old refresh tokens become invalid
+    'UPDATE_LAST_LOGIN': True,
+
+    # Cookie names
+    'AUTH_COOKIE':          'access_token',
+    'AUTH_COOKIE_REFRESH':  'refresh_token',
+
+    # Cookie security
+    'AUTH_COOKIE_SECURE':   not DEBUG,                     # True in production (HTTPS only)
+    'AUTH_COOKIE_SAMESITE': 'Lax',                         # CSRF protection
+    'AUTH_COOKIE_PATH':     '/',
+    'AUTH_COOKIE_DOMAIN':   None,                          # Set in production to your domain
 }
 
 AUTH_USER_MODEL  = 'accounts.User'
@@ -142,15 +156,27 @@ ASGI_APPLICATION = 'My_Porject.asgi.application'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'apps.accounts.authentication.CookieJWTAuthentication',   # Reads from httpOnly cookie
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    
     'DEFAULT_PAGINATION_CLASS': 'utils.pagination.StandardPagination',
     'PAGE_SIZE': 10,
 }
+
+# ── CORS ──────────────────────────────────────────────────────
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',    # React / Vite dev server
+    'http://127.0.0.1:5173',
+]
+CORS_ALLOW_CREDENTIALS = True  # Required so the browser sends cookies cross-origin
+
+# Tell Django's CSRF framework to trust the React origin
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
 
 # groq API
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')

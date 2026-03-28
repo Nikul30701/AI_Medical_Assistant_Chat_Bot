@@ -1,5 +1,4 @@
 from rest_framework import generics, permissions
-from rest_framework.response import Response
 from .models import ChatSession, ChatMessage
 from .serializers import ChatSessionSerializer, ChatMessageSerializer
 from utils.pagination import ChatMessageCursorPagination
@@ -22,10 +21,11 @@ class ChatSessionView(generics.RetrieveAPIView):
         return session
 
 
-class ChatMessageView(generics.ListAPIView):
+class ChatMessageView(generics.ListCreateAPIView):
     """
     GET /api/chat/<document_id>/messages/
-    Returns paginated messages for the session.
+    POST /api/chat/<document_id>/messages/
+    Returns (or creates) messages for the session.
     """
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ChatMessageSerializer
@@ -37,3 +37,13 @@ class ChatMessageView(generics.ListAPIView):
             document_id=self.kwargs['document_id'],
         )
         return ChatMessage.objects.filter(session=session).order_by('created_at')
+
+    def perform_create(self, serializer):
+        session, _ = ChatSession.objects.get_or_create(
+            user=self.request.user,
+            document_id=self.kwargs['document_id'],
+        )
+        # Note: If you want immediate AI response via HTTP, 
+        # you would trigger it here or in a signal.
+        # This currently just saves the user's message.
+        serializer.save(session=session, role='user')
