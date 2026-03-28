@@ -1,21 +1,37 @@
-from django.shortcuts import render
+import logging
+
 from rest_framework import generics, status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import *
 from .serializers import *
 from .services import *
 from django.db import transaction
+from utils.pagination import StandardPagination
+
+logger = logging.getLogger(__name__)
 
 
 class DocumentListView(generics.ListAPIView):
     serializer_class = DocumentSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardPagination
     
     def get_queryset(self):
-        return Document.objects.select_related('analysis').filter(
+        queryset = Document.objects.select_related('analysis').filter(
             user=self.request.user
         ).order_by('-uploaded_at')
+    
+        #   filter by title search
+        search = self.request.query_params.get('search', '').strip()
+        if search:
+            queryset = queryset.filter(title__icontains=search)
+            
+        # filter by status
+        status_filter = self.request.query_params.get('status', '').strip()
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+            
+        return queryset
     
 
 class DocumentDetailView(generics.RetrieveDestroyAPIView):
@@ -26,9 +42,6 @@ class DocumentDetailView(generics.RetrieveDestroyAPIView):
         return Document.objects.select_related('analysis').filter(
             user=self.request.user
         )
-
-
-from django.db import transaction
 
 
 class DocumentUploadView(APIView):
@@ -43,24 +56,50 @@ class DocumentUploadView(APIView):
         title = serializer.validated_data['title']
         file_type = serializer.get_file_type(file)
         
+        # This gives us an audit trail and an ID to attach errors to.
+        document = Document.objects.create(
+            user=request.user,
+            title=title,
+            file=file,
+            file_type=file_type,
+            status=Document.Status.ANALYZING
+        )
+        
+        try:
+            document.file.seek(0)
+            text = extract_text_from_file(document.file, file_type)
+            
+            if not text:
+                raise ValueError('Could not extract text from document.')
+            
+            # 2. Perform the heavy lifting outside the DB transaction.
+            parsed, raw = analyze_document_with_groq(text)
+        
+        except ValueError as e:
+            # Update the document to reflect the failure
+            document.status = Document.Status.FAILED  # Make sure FAILED is in your choices
+            document.save(update_fields=['status'])
+            return Response({'error': str(e)}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        
+        except Exception:
+            logger.exception(
+                "Document processing failed during extraction/analysis "
+                "for user_id=%s doc_id=%s title=%r",
+                request.user.id,
+                document.id,
+                title
+            )
+            # Update the document to reflect the failure
+            document.status = Document.Status.FAILED
+            document.save(update_fields=['status'])
+            return Response(
+                {'error': 'Document processing failed. Please try again.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        # 3. If we made it here, analysis succeeded. Save the results.
         try:
             with transaction.atomic():
-                document = Document.objects.create(
-                    user=request.user,
-                    title=title,
-                    file=file,
-                    file_type=file_type,
-                    status=Document.Status.ANALYZING
-                )
-                
-                document.file.seek(0)
-                text = extract_text_from_file(document.file, file_type)
-                
-                if not text:
-                    raise ValueError('Could not extract text from document.')
-                
-                parsed, raw = analyze_document_with_groq(text)
-                
                 DocumentAnalysis.objects.create(
                     document=document,
                     summary=parsed.get('summary', ''),
@@ -70,11 +109,13 @@ class DocumentUploadView(APIView):
                     raw_response=raw,
                 )
                 document.status = Document.Status.DONE
-                document.save()
+                document.save(update_fields=['status'])
         
-        except ValueError as e:
-            return Response({'error': str(e)}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
         except Exception as e:
-            return Response({'error': 'Document processing failed.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.exception("Failed to save analysis results to database for doc_id=%s", document.id)
+            document.status = Document.Status.FAILED
+            document.save(update_fields=['status'])
+            return Response({'error': 'Failed to save document analysis.'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         return Response(DocumentSerializer(document).data, status=status.HTTP_201_CREATED)

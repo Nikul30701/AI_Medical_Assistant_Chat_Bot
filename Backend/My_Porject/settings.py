@@ -20,20 +20,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Values fetch karna
 SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = os.getenv('DEBUG') == 'True'
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -54,7 +44,6 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',
     'apps.accounts.apps.AccountsConfig',
-    'apps.analysis',
     'apps.chat',
     'apps.documents',
 ]
@@ -149,7 +138,7 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL  = 'accounts.User'
-ASGI_APPLICATION = 'medical_analyzer.asgi.application'
+ASGI_APPLICATION = 'My_Porject.asgi.application'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -158,6 +147,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    
+    'DEFAULT_PAGINATION_CLASS': 'utils.pagination.StandardPagination',
+    'PAGE_SIZE': 10,
 }
 
 # groq API
