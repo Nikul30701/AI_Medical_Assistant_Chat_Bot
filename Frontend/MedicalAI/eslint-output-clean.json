@@ -1,0 +1,36 @@
+[
+  {
+    "filePath": "C:\\Users\\ASUS\\OneDrive\\Desktop\\Django_React\\AI Medical Document Analyzer + Chat\\Frontend\\MedicalAI\\src\\hooks\\useWebSocket.js",
+    "messages": [
+      {
+        "ruleId": "react-hooks/immutability",
+        "severity": 2,
+        "message": "Error: Cannot access variable before it is declared\n\n`connect` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.\n\n  30 |       wsRef.current = null\n  31 |       if (code !== 1000 && retries.current < 4) {\n> 32 |         retryTimer.current = setTimeout(connect, Math.min(1000 * 2 ** retries.current, 15000))\n     |                                         ^^^^^^^ `connect` accessed before it is declared\n  33 |         retries.current++\n  34 |       }\n  35 |     }\n\n  14 |   const retries    = useRef(0)\n  15 |\n> 16 |   const connect = useCallback(() => {\n     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 17 |     if (!documentId || !token) return\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 18 |     dispatch(setWsStatus('connecting'))\n     …\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 35 |     }\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 36 |   }, [documentId, token, dispatch])\n     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `connect` is declared here\n  37 |\n  38 |   useEffect(() => {\n  39 |     connect()",
+        "line": 32,
+        "column": 41,
+        "nodeType": null,
+        "endLine": 32,
+        "endColumn": 48
+      }
+    ],
+    "suppressedMessages": [],
+    "errorCount": 1,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "source": "// src/hooks/useWebSocket.js\r\nimport { useEffect, useRef, useCallback } from 'react'\r\nimport { useDispatch, useSelector } from 'react-redux'\r\nimport { addMessage, setWsStatus, setChatError } from '../store/slices/chatSlice'\r\nimport { selectAccessToken } from '../store/slices/authSlice'\r\n\r\nconst WS = import.meta.env.VITE_WS_URL || 'ws://localhost:8000'\r\n\r\nexport default function useWebSocket(documentId) {\r\n  const dispatch   = useDispatch()\r\n  const token      = useSelector(selectAccessToken)\r\n  const wsRef      = useRef(null)\r\n  const retryTimer = useRef(null)\r\n  const retries    = useRef(0)\r\n\r\n  const connect = useCallback(() => {\r\n    if (!documentId || !token) return\r\n    dispatch(setWsStatus('connecting'))\r\n    const ws = new WebSocket(`${WS}/ws/chat/${documentId}/?token=${token}`)\r\n    wsRef.current = ws\r\n\r\n    ws.onopen    = () => { dispatch(setWsStatus('connected')); retries.current = 0 }\r\n    ws.onmessage = ({ data }) => {\r\n      const msg = JSON.parse(data)\r\n      if (msg.type === 'message') dispatch(addMessage({ role: msg.role, content: msg.content }))\r\n    }\r\n    ws.onerror   = () => dispatch(setChatError('Connection error'))\r\n    ws.onclose   = ({ code }) => {\r\n      dispatch(setWsStatus('disconnected'))\r\n      wsRef.current = null\r\n      if (code !== 1000 && retries.current < 4) {\r\n        retryTimer.current = setTimeout(connect, Math.min(1000 * 2 ** retries.current, 15000))\r\n        retries.current++\r\n      }\r\n    }\r\n  }, [documentId, token, dispatch])\r\n\r\n  useEffect(() => {\r\n    connect()\r\n    return () => { clearTimeout(retryTimer.current); wsRef.current?.close(1000, 'unmount') }\r\n  }, [connect])\r\n\r\n  const sendMessage = useCallback((text) => {\r\n    if (wsRef.current?.readyState === WebSocket.OPEN) {\r\n      dispatch(addMessage({ role: 'user', content: text }))\r\n      wsRef.current.send(JSON.stringify({ message: text }))\r\n      return true\r\n    }\r\n    return false\r\n  }, [dispatch])\r\n\r\n  return { sendMessage }\r\n}\r\n",
+    "usedDeprecatedRules": []
+  },
+  {
+    "filePath": "C:\\Users\\ASUS\\OneDrive\\Desktop\\Django_React\\AI Medical Document Analyzer + Chat\\Frontend\\MedicalAI\\src\\hooks\\useInfiniteScroll.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": []
+  }
+]

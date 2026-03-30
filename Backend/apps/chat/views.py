@@ -43,7 +43,5 @@ class ChatMessageView(generics.ListCreateAPIView):
             user=self.request.user,
             document_id=self.kwargs['document_id'],
         )
-        # Note: If you want immediate AI response via HTTP, 
-        # you would trigger it here or in a signal.
-        # This currently just saves the user's message.
+     
         serializer.save(session=session, role='user')
