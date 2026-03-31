@@ -1,82 +1,39 @@
-import { createSlice } from "@reduxjs/toolkit";
+// src/store/slices/authSlice.js
+import { createSlice } from '@reduxjs/toolkit'
 
 const authSlice = createSlice({
-    name: 'auth',
-
-    initialState: {
-        user: null,
-        accessToken: null,
-        refreshToken: null,
-        isAuthenticated: false,
+  name: 'auth',
+  initialState: {
+    user:            JSON.parse(localStorage.getItem('user') || 'null'),
+    accessToken:     localStorage.getItem('accessToken')  || null,
+    refreshToken:    localStorage.getItem('refreshToken') || null,
+    isAuthenticated: !!localStorage.getItem('accessToken'),
+  },
+  reducers: {
+    setCredentials: (state, { payload: { user, access, refresh } }) => {
+      state.user = user; state.accessToken = access; state.refreshToken = refresh; state.isAuthenticated = true
+      localStorage.setItem('accessToken',  access)
+      localStorage.setItem('refreshToken', refresh)
+      localStorage.setItem('user', JSON.stringify(user))
     },
-
-    reducers: {
-        setCredentials: (state, { payload }) => {
-            const { user, access, refresh } = payload;
-
-            // Basic validation
-            if (!user || !access) {
-                console.warn('setCredentials called with invalid payload');
-                return;
-            }
-
-            state.user = user;
-            state.accessToken = access;
-            state.refreshToken = refresh || null;
-            state.isAuthenticated = true;
-
-            // Persist to localStorage
-            try {
-                localStorage.setItem('user', JSON.stringify(user));
-                localStorage.setItem('accessToken', access);
-                if (refresh) {
-                    localStorage.setItem('refreshToken', refresh);
-                } else {
-                    localStorage.removeItem('refreshToken');
-                }
-            } catch (error) {
-                console.error('Failed to save auth data to localStorage:', error);
-            }
-        },
-
-        updateAccessToken: (state, { payload }) => {
-            if (!payload) return;
-
-            state.accessToken = payload;
-            try {
-                localStorage.setItem('accessToken', payload);
-            } catch (error) {
-                console.error('Failed to update accessToken in localStorage:', error);
-            }
-        },
-
-        logout: (state) => {
-            // Reset state
-            state.user = null;
-            state.accessToken = null;
-            state.refreshToken = null;
-            state.isAuthenticated = false;
-
-            // Clear localStorage
-            try {
-                localStorage.removeItem('user');
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-            } catch (error) {
-                console.error('Failed to clear localStorage:', error);
-            }
-        },
+    updateAccessToken: (state, { payload }) => {
+      state.accessToken = payload; 
+      localStorage.setItem('accessToken', payload)
     },
-});
-
-// Export actions
-export const { setCredentials, updateAccessToken, logout } = authSlice.actions;
-
-// Export reducer
-export default authSlice.reducer;
-
-// Selectors (memoization-friendly)
-export const selectCurrentUser = (state) => state.auth.user;
-export const selectCurrentToken = (state) => state.auth.accessToken;
-export const selectRefreshToken = (state) => state.auth.refreshToken;
-export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
+    updateTokens: (state, { payload: { access, refresh } }) => {
+      state.accessToken = access; 
+      state.refreshToken = refresh;
+      localStorage.setItem('accessToken', access)
+      localStorage.setItem('refreshToken', refresh)
+    },
+    logout: (state) => {
+      Object.assign(state, { user: null, accessToken: null, refreshToken: null, isAuthenticated: false })
+      localStorage.clear()
+    },
+  },
+})
+export const { setCredentials, updateAccessToken, updateTokens, logout } = authSlice.actions
+export default authSlice.reducer
+export const selectCurrentUser     = (s) => s.auth.user
+export const selectAccessToken     = (s) => s.auth.accessToken
+export const selectIsAuthenticated = (s) => s.auth.isAuthenticated

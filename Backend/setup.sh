@@ -18,3 +18,5 @@ python manage.py createsuperuser
 
 echo "Setup complete! You can now run the server with:"
 echo "python manage.py runserver"
+
+echo "daphne -b 127.0.0.1 -p 8000 My_Porject.asgi:application"

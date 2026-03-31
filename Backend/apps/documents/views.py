@@ -17,6 +17,8 @@ class DocumentListView(generics.ListAPIView):
     pagination_class = StandardPagination
     
     def get_queryset(self):
+        if not self.request.user or not self.request.user.is_authenticated:
+            return Document.objects.none()
         queryset = Document.objects.select_related('analysis').filter(
             user=self.request.user
         ).order_by('-uploaded_at')
@@ -47,6 +49,17 @@ class DocumentDetailView(generics.RetrieveDestroyAPIView):
 class DocumentUploadView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
+    def get_file_type(self, file):
+        """Get file type from file extension"""
+        extension = file.name.lower().split('.')[-1]
+        if extension in ['jpg', 'jpeg', 'png']:
+            return 'image'
+        elif extension == 'pdf':
+            return 'pdf'
+        elif extension == 'docx':
+            return 'docx'
+        return extension
+    
     def post(self, request):
         serializer = DocumentUploadSerializer(data=request.data)
         if not serializer.is_valid():
@@ -54,7 +67,7 @@ class DocumentUploadView(APIView):
         
         file = serializer.validated_data['file']
         title = serializer.validated_data['title']
-        file_type = serializer.get_file_type(file)
+        file_type = self.get_file_type(file)
         
         # This gives us an audit trail and an ID to attach errors to.
         document = Document.objects.create(

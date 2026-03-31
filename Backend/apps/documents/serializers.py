@@ -21,6 +21,17 @@ class DocumentUploadSerializer(serializers.ModelSerializer):
         model = Document
         fields = ["title", "file"]
         
+    def get_file_type(self, file):
+        """Get file type from file extension"""
+        extension = file.name.lower().split('.')[-1]
+        if extension in ['jpg', 'jpeg', 'png']:
+            return 'image'
+        elif extension == 'pdf':
+            return 'pdf'
+        elif extension == 'docx':
+            return 'docx'
+        return extension
+        
     def validate_file(self, file):
         name = file.name.lower()
         if not name.endswith(('.pdf', '.jpg', ".jpeg", ".png", ".docx")):
@@ -33,16 +44,6 @@ class DocumentUploadSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Automatically determine file_type before saving to the DB
         file = validated_data['file']
-        extension = file.name.lower().split('.')[-1]
-        
-        if extension in ['jpg', 'jpeg', 'png']:
-            validated_data['file_type'] = 'image'
-        elif extension == 'pdf':
-            validated_data['file_type'] = 'pdf'
-        elif extension == 'docx':
-            validated_data['file_type'] = 'docx'
-        else:
-            validated_data['file_type'] = extension
-        
+        validated_data['file_type'] = self.get_file_type(file)
         
         return super().create(validated_data)

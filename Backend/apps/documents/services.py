@@ -28,14 +28,20 @@ Rules:
 
 def analyze_document_with_groq(document_text: str) -> tuple:
     """Call Groq API,  return (parsed_dict, raw_response_string)"""
+    api_key = getattr(settings, 'GROQ_API_KEY', None)
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is not configured. Please set it in your .env file.")
+    
+    model = getattr(settings, 'GROQ_MODEL', 'llama-3.3-70b-versatile')
+    
     response = requests.post(
         'https://api.groq.com/openai/v1/chat/completions',
         headers={
-            'Authorization': f"Bearer {settings.GROQ_API_KEY}",
+            'Authorization': f"Bearer {api_key}",
             'Content-Type': 'application/json'
         },
         json={
-            'model': settings.GROQ_MODEL,
+            'model': model,
             'messages': [
                 {'role': 'system', 'content': SYSTEM_PROMPT},
                 {'role': 'user', 'content': f"Analyze this medical document:\n\n{document_text}"},

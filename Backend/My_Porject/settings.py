@@ -50,10 +50,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  
+    "django.middleware.common.CommonMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',              # Must be before CommonMiddleware
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -156,6 +156,9 @@ ASGI_APPLICATION = 'My_Porject.asgi.application'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        # Frontend currently sends access token via Authorization header (Bearer <token>).
+        # Keep cookie auth too (optional), but enable header auth so API calls work.
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'apps.accounts.authentication.CookieJWTAuthentication',   # Reads from httpOnly cookie
     ),
     'DEFAULT_PERMISSION_CLASSES': (
@@ -169,6 +172,10 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',    # React / Vite dev server
     'http://127.0.0.1:5173',
+    'http://localhost:5174',
+    'http://127.0.0.1:5174',
+    'http://localhost:5175',
+    'http://127.0.0.1:5175',
 ]
 CORS_ALLOW_CREDENTIALS = True  # Required so the browser sends cookies cross-origin
 
@@ -176,6 +183,10 @@ CORS_ALLOW_CREDENTIALS = True  # Required so the browser sends cookies cross-ori
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
+    'http://localhost:5174',
+    'http://127.0.0.1:5174',
+    'http://localhost:5175',
+    'http://127.0.0.1:5175',
 ]
 
 # groq API
