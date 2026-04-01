@@ -5,11 +5,6 @@ from utils.pagination import ChatMessageCursorPagination
 
 
 class ChatSessionView(generics.RetrieveAPIView):
-    """
-    GET /api/chat/<document_id>/
-    Returns (or creates) the chat session for the authenticated user + document,
-    including all messages nested inside.
-    """
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ChatSessionSerializer
 
@@ -22,11 +17,6 @@ class ChatSessionView(generics.RetrieveAPIView):
 
 
 class ChatMessageView(generics.ListCreateAPIView):
-    """
-    GET /api/chat/<document_id>/messages/
-    POST /api/chat/<document_id>/messages/
-    Returns (or creates) messages for the session.
-    """
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ChatMessageSerializer
     pagination_class = ChatMessageCursorPagination

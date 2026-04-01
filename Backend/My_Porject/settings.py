@@ -77,7 +77,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'My_Porject.wsgi.application'
+ASGI_APPLICATION = 'My_Porject.asgi.application'
 
 
 # Database
@@ -156,8 +156,6 @@ ASGI_APPLICATION = 'My_Porject.asgi.application'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        # Frontend currently sends access token via Authorization header (Bearer <token>).
-        # Keep cookie auth too (optional), but enable header auth so API calls work.
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'apps.accounts.authentication.CookieJWTAuthentication',   # Reads from httpOnly cookie
     ),
@@ -166,11 +164,20 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'utils.pagination.StandardPagination',
     'PAGE_SIZE': 10,
+
+    # Throttling
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'user': '10/min',
+        'anon': '5/min',  
+    }
 }
 
 # ── CORS ──────────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',    # React / Vite dev server
+    'http://localhost:5173',   
     'http://127.0.0.1:5173',
     'http://localhost:5174',
     'http://127.0.0.1:5174',
@@ -179,7 +186,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True  # Required so the browser sends cookies cross-origin
 
-# Tell Django's CSRF framework to trust the React origin
+# React URL
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',

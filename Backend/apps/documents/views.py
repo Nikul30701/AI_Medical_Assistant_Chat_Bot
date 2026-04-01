@@ -85,7 +85,7 @@ class DocumentUploadView(APIView):
             if not text:
                 raise ValueError('Could not extract text from document.')
             
-            # 2. Perform the heavy lifting outside the DB transaction.
+            #  Perform the heavy lifting outside the DB transaction.
             parsed, raw = analyze_document_with_groq(text)
         
         except ValueError as e:
@@ -110,7 +110,7 @@ class DocumentUploadView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         
-        # 3. If we made it here, analysis succeeded. Save the results.
+        # Analysis succeeded. Save the results.
         try:
             with transaction.atomic():
                 DocumentAnalysis.objects.create(

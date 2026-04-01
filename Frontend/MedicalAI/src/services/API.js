@@ -7,7 +7,7 @@ const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 const base = fetchBaseQuery({
   baseUrl: BASE,
   prepareHeaders: (headers, { getState }) => {
-    const token = getState().auth.accessToken
+    const token = getState().auth.access || getState().auth.accessToken
     if (token) headers.set('Authorization', `Bearer ${token}`)
     return headers
   },
