@@ -23,5 +23,4 @@ class UserView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_object(self):
-        # This ignores the 'pk' in the URL and always returns the current user
         return self.request.user

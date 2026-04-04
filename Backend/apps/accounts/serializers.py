@@ -37,12 +37,9 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """Custom serializer to use email instead of username for login"""
     username_field = 'email'
     
     def validate(self, attrs):
-        # The parent class expects 'username' but we use 'email'
-        # Map email to username field for the parent class
         email = attrs.get('email')
         if email:
             attrs['username'] = email
