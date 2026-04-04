@@ -1,3 +1,6 @@
+# This class implements a WebSocket consumer for a chat application that connects users to a document
+# analysis assistant, allowing users to ask questions related to a specific document and receive
+# AI-generated replies based on the document context.
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
@@ -18,7 +21,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     """
 
     async def connect(self):
-        self.user        = self.scope['user']
+        self.user= self.scope['user']
         self.document_id = self.scope['url_route']['kwargs']['document_id']
 
         if isinstance(self.user, AnonymousUser):
@@ -30,36 +33,51 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.close(code=4004)
             return
 
-        self.session     = await self.get_or_create_session()
+        self.session= await self.get_or_create_session()
         self.doc_context = await self.get_doc_context()
 
         await self.accept()
         await self.send(json.dumps({
-            'type':    'connected',
+            'type':'connected',
             'message': f'Connected. Ask questions about: {self.document.title}',
+        }))
+        
+        recent = await self.get_recent_history(limit=20)
+        await self.send(json.dumps({
+            'type': 'history',
+            'messages': recent,
         }))
 
     async def disconnect(self, close_code):
-        pass
+        if hasattr(self, 'session'):
+            await self.mark_session_inactive()
 
     async def receive(self, text_data):
-        data         = json.loads(text_data)
+        try:
+            data = json.loads(text_data)
+        except json.JSONDecodeError:
+            await self.send(json.dumps({
+                'type': 'error',
+                'message': 'Invalid JSON format.'
+            }))
+            return
+
         user_message = data.get('message', '').strip()
         if not user_message:
             return
 
+        history = await self.get_recent_history(limit=10)
         await self.save_message(role='user', content=user_message)
-        history  = await self.get_recent_history(limit=10)
-        ai_reply = await self.call_groq(user_message, history)
+        ai_reply = await self.call_groq(user_message, history)  
         await self.save_message(role='assistant', content=ai_reply)
 
         await self.send(json.dumps({
-            'type':    'message',
-            'role':    'assistant',
+            'type':'message',
+            'role': 'assistant',
             'content': ai_reply,
         }))
 
-    # ── DB helpers ────────────────────────────────────────────────
+    # DB helpers 
 
     @database_sync_to_async
     def get_document(self):
@@ -100,12 +118,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         msgs = (
             ChatMessage.objects
             .filter(session=self.session)
-            .order_by('-created_at')[:limit]
+            .order_by('-created_at')
+            .values('role', 'content') 
+            [:limit]
         )
-        return [{'role': m.role, 'content': m.content} for m in reversed(list(msgs))]
+        return list(reversed(msgs))
 
-    # ── Groq call (async via httpx) ────────────────────────────────
-
+    #  Groq call    
     async def call_groq(self, user_message: str, history: list) -> str:
         system_prompt = (
             "You are a helpful medical document assistant.\n"
@@ -132,7 +151,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'max_tokens':  500,
                     },
                 )
-                response.raise_for_status()
-                return response.json()['choices'][0]['message']['content']
+                response.raise_for_status()               
+                data = response.json()
+                choices = data.get('choices', [])
+                if not choices:
+                    return "Sorry, I received an empty response from the AI."
+                return choices[0].get('message', {}).get('content', 'No content in response.')
         except Exception as e:
             return f"Error processing your question: {str(e)}"
