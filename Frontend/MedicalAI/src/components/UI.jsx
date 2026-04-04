@@ -57,7 +57,7 @@ export function Button({ children, variant = 'primary', size = 'md', loading, cl
 }
 
 /* ── Input ────────────────────────────────────────────────────────────────── */
-export function Input({ label, error, hint, className = '', ...props }) {
+export function Input({ label, error, hint, className = '', rightElement, ...props }) {
   return (
     <div className="flex flex-col gap-1.5 w-full">
       {label && (
@@ -65,16 +65,24 @@ export function Input({ label, error, hint, className = '', ...props }) {
           {label}
         </label>
       )}
-      <input
-        className={`
-          w-full px-4 py-2.5 bg-white text-sm text-zinc-900 rounded-lg border
-          transition-all duration-200 placeholder:text-zinc-400
-          focus:outline-none focus:ring-4 focus:ring-zinc-900/5
-          ${error ? 'border-red-500 focus:border-red-500' : 'border-zinc-200 focus:border-zinc-900'}
-          ${className}
-        `}
-        {...props}
-      />
+      <div className="relative flex items-center">
+        <input
+          className={`
+            w-full px-4 py-2.5 bg-white text-sm text-zinc-900 rounded-lg border
+            transition-all duration-200 placeholder:text-zinc-400
+            focus:outline-none focus:ring-4 focus:ring-zinc-900/5
+            ${error ? 'border-red-500 focus:border-red-500' : 'border-zinc-200 focus:border-zinc-900'}
+            ${rightElement ? 'pr-11' : ''}
+            ${className}
+          `}
+          {...props}
+        />
+        {rightElement && (
+          <div className="absolute right-3 focus-within:z-10">
+            {rightElement}
+          </div>
+        )}
+      </div>
       {error && <span className="text-xs font-medium text-red-500 ml-0.5">{error}</span>}
       {hint && !error && <span className="text-xs text-zinc-400 ml-0.5">{hint}</span>}
     </div>
@@ -142,4 +150,3 @@ export function Alert({ type = 'error', children, className = '' }) {
     </div>
   );
 }
-

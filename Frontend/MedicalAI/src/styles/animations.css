@@ -1,0 +1,39 @@
+/* Animations for Medical AI Dashboard */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out forwards;
+}
+
+/* Stagger animation delays for lists */
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 25ms; }
+.stagger > *:nth-child(3) { animation-delay: 50ms; }
+.stagger > *:nth-child(4) { animation-delay: 75ms; }
+.stagger > *:nth-child(5) { animation-delay: 100ms; }
+.stagger > *:nth-child(6) { animation-delay: 125ms; }
+.stagger > *:nth-child(7) { animation-delay: 150ms; }
+.stagger > *:nth-child(8) { animation-delay: 175ms; }

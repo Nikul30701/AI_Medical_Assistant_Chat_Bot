@@ -1,5 +1,6 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -33,3 +34,16 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "full_name", "email", "created_at"]
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """Custom serializer to use email instead of username for login"""
+    username_field = 'email'
+    
+    def validate(self, attrs):
+        # The parent class expects 'username' but we use 'email'
+        # Map email to username field for the parent class
+        email = attrs.get('email')
+        if email:
+            attrs['username'] = email
+        return super().validate(attrs)

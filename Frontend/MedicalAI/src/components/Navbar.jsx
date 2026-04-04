@@ -16,79 +16,86 @@ const Navbar = () => {
     };
 
     return (
-        <header className="h-16 flex items-center justify-between px-6 md:px-10 sticky top-0 z-50 
-                            bg-white/80 backdrop-blur-md border-b border-gray-100">
-          {/* Logo Section */}
-            <div 
-                onClick={() => navigate('/dashboard')}
-                className="flex items-center gap-3 cursor-pointer group"
-            >
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg 
-                            bg-black text-white shadow-sm transition-all 
-                            group-hover:bg-indigo-600 group-hover:scale-105">
-              ⚕
-            </div>
-            <div className="hidden sm:block">
-              <span className="font-bold text-[17px] tracking-[-0.02em] text-gray-900 block leading-none">
-                MedAnalyzer
-              </span>
-              <span className="text-[10px] font-bold text-indigo-600 tracking-[0.1em] uppercase">
-                Intelligence
-              </span>
-            </div>
-          </div>
-
-          {/* Right Side */}
-          <div className="flex items-center gap-2 sm:gap-6">
-            
-            {/* Action Area */}
-            <div className="flex items-center gap-3">
-                {pathname !== '/upload' && (
-                    <Button 
-                        size="sm"
-                        onClick={() => navigate('/upload')}
-                        className="bg-gray-900 text-white hover:bg-gray-800 rounded-full px-5 text-xs font-medium transition-all active:scale-95"
-                    >
-                        + New Analysis
-                    </Button>
-                )}
-            </div>
-
-            {/* User Profile & Logout */}
-            <div className="flex items-center gap-4 pl-4 border-l border-gray-100">
-                <div className="flex items-center gap-3 group cursor-default">
-                    {/* User Info - Subtle Typography */}
-                    <div className="hidden md:block text-right">
-                        <p className="text-sm font-semibold text-gray-900 leading-none mb-1">
-                            {user?.full_name?.split(' ')[0] || 'User'}
-                        </p>
-                        <div className="flex items-center justify-end gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Active</p>
-                        </div>
+        <header className="sticky top-0 z-50 w-full px-4 py-3">
+            {/* Glass Container */}
+            <div className="max-w-7xl mx-auto h-16 flex items-center justify-between px-6 
+                            bg-white/70 backdrop-blur-xl border border-slate-200/60 shadow-sm rounded-2xl">
+                
+                {/* Brand Identity */}
+                <div 
+                    onClick={() => navigate('/dashboard')}
+                    className="flex items-center gap-3.5 cursor-pointer group"
+                >
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl 
+                                    bg-slate-900 text-white shadow-lg shadow-slate-200/50 
+                                    transition-all duration-300 group-hover:bg-indigo-600 group-hover:-rotate-3">
+                        ⚕
                     </div>
-
-                    {/* Avatar - Clean Gradient */}
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white
-                                    bg-gradient-to-tr from-indigo-500 to-blue-400 border-2 border-white shadow-sm">
-                        {user?.full_name?.[0]?.toUpperCase() || 'U'}
+                    <div className="hidden sm:block">
+                        <h1 className="font-extrabold text-[18px] tracking-tight text-slate-900 leading-none">
+                            MedAnalyzer
+                        </h1>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-0.5">
+                            Core <span className="text-indigo-500">v2.0</span>
+                        </p>
                     </div>
                 </div>
 
-                <button 
-                    onClick={handleLogout}
-                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors rounded-lg"
-                    title="Logout"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                </button>
+                {/* Navigation & User Actions */}
+                <div className="flex items-center gap-3 md:gap-8">
+                    
+                    {/* Primary Action */}
+                    <nav className="flex items-center pr-2 md:pr-8 border-r border-slate-100">
+                        {pathname !== '/upload' && (
+                            <Button 
+                                size="sm"
+                                onClick={() => navigate('/upload')}
+                                className="bg-slate-900 text-white hover:bg-indigo-600 rounded-xl px-4 py-2.5
+                                         text-[13px] font-bold transition-all hover:shadow-lg hover:shadow-indigo-100 active:scale-95"
+                            >
+                                <span className="mr-1.5">+</span> Analyze Document
+                            </Button>
+                        )}
+                    </nav>
+
+                    {/* Profile Section */}
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="hidden md:block text-right">
+                                <p className="text-[13px] font-bold text-slate-900 leading-none mb-1">
+                                    {user?.full_name || 'Medical Officer'}
+                                </p>
+                                <div className="flex items-center justify-end gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                        Verified
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Refined Avatar */}
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold
+                                            bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700 
+                                            border border-slate-200/50 shadow-inner group-hover:scale-105 transition-transform">
+                                {user?.full_name?.split(' ')[0]?.toUpperCase() || 'M'}
+                            </div>
+                        </div>
+
+                        {/* Logout with specific style */}
+                        <button 
+                            onClick={handleLogout}
+                            className="group p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50/50 
+                                       transition-all duration-200 rounded-xl border border-transparent hover:border-red-100"
+                            title="Sign Out"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
             </div>
-        </div>
-    </header>
+        </header>
     );
 };
 
