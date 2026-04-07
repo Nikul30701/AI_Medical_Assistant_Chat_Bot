@@ -11,7 +11,7 @@ class StandardPagination(PageNumberPagination):
     def get_paginated_response(self, data):
         return Response({
             'count': self.page.paginator.count,
-            'total': self.page.paginator.num_pages,
+            'total_pages': self.page.paginator.num_pages,
             'next': self.get_next_link(),
             'previous': self.get_previous_link(),
             'result': data,
@@ -25,7 +25,7 @@ class StandardPagination(PageNumberPagination):
                 'total_pages': {'type': 'integer'},
                 'next': {'type': 'string', 'nullable':True},
                 'previous': {'type': 'string', 'nullable':True},
-                'result': 'schema'
+                'result': schema,
             }
         }
     
@@ -34,13 +34,13 @@ class ChatMessageCursorPagination(CursorPagination):
     page_size = 20
     page_size_query_param = 'page_size'
     max_page_size = 100
-    ordering = 'created_at'  # Oldest first within a page
+    ordering = 'created_at'  
     cursor_query_param = 'cursor'
     
     def get_paginated_response(self, data):
         return Response({
-            'next': self.get_next_link(),  # Link to older messages
-            'previous': self.get_previous_link(),  # Link to newer messages
+            'next': self.get_next_link(),  # older messages
+            'previous': self.get_previous_link(),  #  newer messages
             'results': data,
         })
 

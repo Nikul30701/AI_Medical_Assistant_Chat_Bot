@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'apps.accounts.apps.AccountsConfig',
     'apps.chat',
     'apps.documents',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -172,7 +173,10 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'user': '10/min',
         'anon': '5/min',  
-    }
+    },
+    
+    # Spectacular
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 # ── CORS ──────────────────────────────────────────────────────
